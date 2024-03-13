@@ -1,0 +1,289 @@
+-- --------------------------------------------------------
+-- Hôte:                         127.0.0.1
+-- Version du serveur:           8.0.30 - MySQL Community Server - GPL
+-- SE du serveur:                Win64
+-- HeidiSQL Version:             12.1.0.6537
+-- --------------------------------------------------------
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+
+-- Listage de la structure de la base pour testequizdb
+CREATE DATABASE IF NOT EXISTS `testequizdb` /*!40100 DEFAULT CHARACTER SET utf8mb3 */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `testequizdb`;
+
+-- Listage de la structure de table testequizdb. association_question_quiz
+CREATE TABLE IF NOT EXISTS `association_question_quiz` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `id_question` int NOT NULL,
+  `id_quiz` int NOT NULL,
+  PRIMARY KEY (`id_question`,`id_quiz`,`id`) USING BTREE,
+  UNIQUE KEY `id` (`id`),
+  KEY `id_quiz` (`id_quiz`),
+  CONSTRAINT `association_question_quiz_ibfk_1` FOREIGN KEY (`id_question`) REFERENCES `question` (`id`),
+  CONSTRAINT `association_question_quiz_ibfk_2` FOREIGN KEY (`id_quiz`) REFERENCES `quiz` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.association_question_quiz : ~10 rows (environ)
+INSERT INTO `association_question_quiz` (`id`, `id_question`, `id_quiz`) VALUES
+	(1, 1, 1),
+	(2, 2, 1),
+	(3, 3, 1),
+	(4, 4, 1),
+	(5, 5, 1),
+	(6, 6, 1),
+	(7, 7, 1),
+	(8, 8, 1),
+	(9, 9, 1),
+	(10, 10, 1);
+
+-- Listage de la structure de table testequizdb. commentaire
+CREATE TABLE IF NOT EXISTS `commentaire` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `comment` varchar(250) NOT NULL DEFAULT '',
+  `id_user` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `FK__utilisateur` (`id_user`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.commentaire : ~0 rows (environ)
+
+-- Listage de la structure de table testequizdb. examen
+CREATE TABLE IF NOT EXISTS `examen` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `date_debut` date DEFAULT NULL,
+  `date_fin` date DEFAULT NULL,
+  `id_quiz` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_quiz` (`id_quiz`),
+  CONSTRAINT `examen_ibfk_1` FOREIGN KEY (`id_quiz`) REFERENCES `quiz` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=123 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.examen : ~11 rows (environ)
+INSERT INTO `examen` (`id`, `date_debut`, `date_fin`, `id_quiz`) VALUES
+	(116, '2024-03-13', NULL, 1),
+	(117, '2024-03-13', NULL, 2),
+	(118, '2024-03-13', NULL, 2),
+	(119, '2024-03-13', '2024-03-13', 1),
+	(120, '2024-03-13', NULL, 2),
+	(121, '2024-03-13', NULL, 1),
+	(122, '2024-03-13', NULL, 1),
+	(123, '2024-03-13', NULL, 2),
+	(124, '2024-03-13', '2024-03-13', 1),
+	(125, '2024-03-13', NULL, 1),
+	(126, '2024-03-13', NULL, 2);
+
+-- Listage de la structure de table testequizdb. question
+CREATE TABLE IF NOT EXISTS `question` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `enonce` varchar(250) DEFAULT NULL,
+  `question_add_by` varchar(250) DEFAULT NULL,
+  `image` longblob,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.question : ~10 rows (environ)
+INSERT INTO `question` (`id`, `enonce`, `question_add_by`, `image`) VALUES
+	(1, 'Quel célèbre empereur a dirigé l\'Empire du Mali au XIVe siècle?', '', NULL),
+	(2, 'Quelle était la capitale de l\'Empire du Mali?', '', NULL),
+	(3, 'Quel événement a marqué le début de la Première Guerre mondiale?', '', NULL),
+	(4, 'Quelle bataille, survenue en 1815, a marqué la fin de l\'ère napoléonienne en Europe?', '', NULL),
+	(5, ' Quelle était la capitale de l\'Empire du Ghana?', '', NULL),
+	(6, 'Quelle activité économique était essentielle pour l\'Empire du Ghana?', '', NULL),
+	(7, 'Dans quel pays se trouve tombouctou ?', '', NULL),
+	(8, 'Quelle était la principale source de richesse de Mansa Musa?', '', NULL),
+	(9, 'Quelle était la grande université qui a fait de Tombouctou un centre intellectuel important au Moyen Âge?', '', NULL),
+	(10, 'Quel explorateur arabe a décrit Tombouctou comme "une ville en or" au 14e siècle?', '', NULL);
+
+-- Listage de la structure de table testequizdb. quiz
+CREATE TABLE IF NOT EXISTS `quiz` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `type_quiz` varchar(250) DEFAULT NULL,
+  `titre` varchar(250) DEFAULT NULL,
+  `description` varchar(250) DEFAULT NULL,
+  `auteur` varchar(50) DEFAULT NULL,
+  `date_de_publication` date DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.quiz : ~2 rows (environ)
+INSERT INTO `quiz` (`id`, `type_quiz`, `titre`, `description`, `auteur`, `date_de_publication`) VALUES
+	(1, 'Histoire', 'Quiz sur l\'histoire du monde', 'Découvrez les récits fascinants qui tissent l\'histoire de ce monde, explorant ses moments héroïques et ses évolutions culturelles. Une plongée captivante dans un passé riche en enseignements.', ' Mallé TRAORE', '2024-01-24'),
+	(2, 'Géographie', 'A venir  (La Géographie - Drapeaux du Monde)', ' Voyagez à travers le monde en découvrant les drapeaux qui représentent chaque nation. Une aventure géographique qui élargira vos horizons et vous permettra de reconnaître les symboles uniques de diverses cultures.', ' Mallé TRAORE', '2024-02-22');
+
+-- Listage de la structure de table testequizdb. reponse
+CREATE TABLE IF NOT EXISTS `reponse` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `libelle` varchar(250) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.reponse : ~40 rows (environ)
+INSERT INTO `reponse` (`id`, `libelle`) VALUES
+	(1, 'Mansa Musa'),
+	(2, ' Sundiata Keita'),
+	(3, ' Askia Muhammad'),
+	(4, 'soumaoro kanté'),
+	(5, 'Niani'),
+	(6, 'Tombouctou'),
+	(7, 'Gao'),
+	(8, 'Koumbi Saleh'),
+	(9, ' L\'assassinat de l\'archiduc François-Ferdinand'),
+	(10, ' La Révolution française'),
+	(11, 'La guerre de Sécession'),
+	(12, 'La chute de Constantinople'),
+	(13, 'La bataille de Waterloo'),
+	(14, 'La bataille de Jena-Auerstedt'),
+	(15, 'La bataille d\'Austerlitz'),
+	(16, 'La bataille de Leipzig'),
+	(17, ' Koumbi Saleh'),
+	(18, 'Tombouctou'),
+	(19, 'Niani'),
+	(20, 'Gao'),
+	(21, 'Le commerce de l\'or et du sel'),
+	(22, 'L\'agriculture'),
+	(23, 'L\'élevage'),
+	(24, 'La pêche'),
+	(25, 'Mali'),
+	(26, 'Senegal'),
+	(27, 'Libye'),
+	(28, 'Maroc'),
+	(29, 'L\'or'),
+	(30, 'Les diamants'),
+	(31, 'Le cuivre'),
+	(32, 'Le sel'),
+	(33, ' Université de Sankoré'),
+	(34, 'Université de Kidal'),
+	(35, 'Université Al Quaraouiyine'),
+	(36, 'Université de Bamako'),
+	(37, ' Ibn Battuta'),
+	(38, 'Seydou Badian Kouyaté'),
+	(39, 'Modibo Keita'),
+	(40, 'Askia mohamed');
+
+-- Listage de la structure de table testequizdb. resultats
+CREATE TABLE IF NOT EXISTS `resultats` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `id_examen` int DEFAULT NULL,
+  `id_utilisateur` int DEFAULT NULL,
+  `score` int DEFAULT NULL,
+  `reponse` int DEFAULT NULL,
+  `id_question` int DEFAULT NULL,
+  `reponse_attendue` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_examen` (`id_examen`),
+  KEY `id_utilisateur` (`id_utilisateur`),
+  KEY `FK_resultats_reponse` (`reponse`),
+  KEY `fk_question` (`id_question`),
+  KEY `fk_reponse_attendue` (`reponse_attendue`),
+  CONSTRAINT `fk_question` FOREIGN KEY (`id_question`) REFERENCES `question` (`id`),
+  CONSTRAINT `FK_resultats_reponse` FOREIGN KEY (`reponse`) REFERENCES `reponse` (`id`),
+  CONSTRAINT `resultats_ibfk_1` FOREIGN KEY (`id_examen`) REFERENCES `examen` (`id`),
+  CONSTRAINT `resultats_ibfk_2` FOREIGN KEY (`id_utilisateur`) REFERENCES `utilisateur` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=225 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.resultats : ~20 rows (environ)
+INSERT INTO `resultats` (`id`, `id_examen`, `id_utilisateur`, `score`, `reponse`, `id_question`, `reponse_attendue`) VALUES
+	(215, 119, 6, 0, 19, 5, 17),
+	(216, 119, 6, 0, 6, 2, 5),
+	(217, 119, 6, 10, 9, 3, 9),
+	(218, 119, 6, 0, 15, 4, 13),
+	(219, 119, 6, 10, 21, 6, 21),
+	(220, 119, 6, 10, 1, 1, 1),
+	(221, 119, 6, 10, 37, 10, 37),
+	(222, 119, 6, 10, 25, 7, 25),
+	(223, 119, 6, 10, 29, 8, 29),
+	(224, 119, 6, 10, 33, 9, 33),
+	(225, 124, 6, 0, 14, 4, 13),
+	(226, 124, 6, 0, 34, 9, 33),
+	(227, 124, 6, 0, 31, 8, 29),
+	(228, 124, 6, 0, 11, 3, 9),
+	(229, 124, 6, 0, 40, 10, 37),
+	(230, 124, 6, 0, 18, 5, 17),
+	(231, 124, 6, 0, 2, 1, 1),
+	(232, 124, 6, 10, 21, 6, 21),
+	(233, 124, 6, 10, 5, 2, 5),
+	(234, 124, 6, 10, 25, 7, 25);
+
+-- Listage de la structure de table testequizdb. utilisateur
+CREATE TABLE IF NOT EXISTS `utilisateur` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(250) DEFAULT NULL,
+  `mot_de_passe` varchar(250) DEFAULT NULL,
+  `nom` varchar(50) DEFAULT NULL,
+  `prenom` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.utilisateur : ~1 rows (environ)
+INSERT INTO `utilisateur` (`id`, `username`, `mot_de_passe`, `nom`, `prenom`) VALUES
+	(6, 'Le rois des pirates', '$2b$10$bhl/xsAOw6UM70TIM.yE6ux.t6AI3k0fNiXddGe.UgsnYHILylvmG', 'Chappeau de paille', 'Luffy');
+
+-- Listage de la structure de table testequizdb. verite
+CREATE TABLE IF NOT EXISTS `verite` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `id_question` int DEFAULT NULL,
+  `id_reponse` int DEFAULT NULL,
+  `valeur` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_question` (`id_question`),
+  KEY `id_reponse` (`id_reponse`),
+  CONSTRAINT `verite_ibfk_1` FOREIGN KEY (`id_question`) REFERENCES `question` (`id`),
+  CONSTRAINT `verite_ibfk_2` FOREIGN KEY (`id_reponse`) REFERENCES `reponse` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb3;
+
+-- Listage des données de la table testequizdb.verite : ~40 rows (environ)
+INSERT INTO `verite` (`id`, `id_question`, `id_reponse`, `valeur`) VALUES
+	(1, 1, 1, 1),
+	(2, 1, 2, 0),
+	(3, 1, 3, 0),
+	(4, 1, 4, 0),
+	(5, 2, 5, 1),
+	(6, 2, 6, 0),
+	(7, 2, 7, 0),
+	(8, 2, 8, 0),
+	(9, 3, 9, 1),
+	(10, 3, 10, 0),
+	(11, 3, 11, 0),
+	(12, 3, 12, 0),
+	(13, 4, 13, 1),
+	(14, 4, 14, 0),
+	(15, 4, 15, 0),
+	(16, 4, 16, 0),
+	(17, 5, 17, 1),
+	(18, 5, 18, 0),
+	(19, 5, 19, 0),
+	(20, 5, 20, 0),
+	(21, 6, 21, 1),
+	(22, 6, 22, 0),
+	(23, 6, 23, 0),
+	(24, 6, 24, 0),
+	(25, 7, 25, 1),
+	(26, 7, 26, 0),
+	(27, 7, 27, 0),
+	(28, 7, 28, 0),
+	(29, 8, 29, 1),
+	(30, 8, 30, 0),
+	(31, 8, 31, 0),
+	(32, 8, 32, 0),
+	(33, 9, 33, 1),
+	(34, 9, 34, 0),
+	(35, 9, 35, 0),
+	(36, 9, 36, 0),
+	(37, 10, 37, 1),
+	(38, 10, 38, 0),
+	(39, 10, 39, 0),
+	(40, 10, 40, 0);
+
+/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
+/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
+/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;

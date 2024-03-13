@@ -1,0 +1,58 @@
+/* styles for default option */
+/* .option-default {
+    @apply cursor-pointer;
+  } */
+  .neumorph-1 {
+    box-shadow: 6px 6px 18px rgba(0, 0, 0, 0.09), -6px -6px 18px #ffffff;
+  }
+  .container {
+    max-width: 400px;
+    border-radius: 25px;
+    top: 10%;
+  }
+  /* .option-default div:nth-child(1) {
+    @apply hidden;
+  }
+  
+  .option-default div:nth-child(2) div:nth-child(1) {
+    @apply inline text-gray-800 bg-gray-400;
+  } */
+  
+  /* .option-default div:nth-child(2) {
+    @apply bg-white text-gray-800;
+  } */
+  
+  /* styles for correct option */
+  
+  /* .option-correct {
+    @apply cursor-pointer;
+  }
+  
+  .option-correct div:nth-child(1) {
+    @apply inline;
+  }
+  
+  .option-correct div:nth-child(2) div:nth-child(1) {
+    @apply inline text-white bg-gray-800;
+  }
+  
+  .option-correct div:nth-child(2) {
+    @apply bg-green-700 text-white;
+  }
+   */
+  /* styles for wrong option */
+  /* .option-wrong {
+    @apply cursor-pointer;
+  }
+  
+  .option-wrong div:nth-child(1) {
+    @apply hidden;
+  }
+  
+  .option-wrong div:nth-child(2) div:nth-child(1) {
+    @apply inline text-white bg-gray-800;
+  }
+  
+  .option-wrong div:nth-child(2) {
+    @apply bg-red-600 text-white;
+  } */
