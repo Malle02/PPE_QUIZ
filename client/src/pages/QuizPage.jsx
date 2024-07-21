@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../composant/axiosConfig';
@@ -23,8 +25,6 @@ const QuizPage = () => {
 
 
   useEffect(() => {
-
-    // verification de la connexion :
     const fetchUserData = async () => {
       try {
         const loginCheckResponse = await axios.get("http://localhost:3008/api/loginclient");
@@ -46,7 +46,6 @@ const QuizPage = () => {
     fetchUserData();
   }, [navigate]);
   
-  // affichages des question 
 
   useEffect(() => {
     const fetchQuizData = async () => {
@@ -66,8 +65,6 @@ const QuizPage = () => {
     fetchQuizData();
   }, [quizId]);
 
-
-  // barre de progression 
   useEffect(() => {
     if (quizData && quizData.questions) {
       const currentQuestion = quizData.questions[currentQuestionIndex];
@@ -83,8 +80,6 @@ const QuizPage = () => {
     setSelectedAnswer(answerId);
   };
 
-
-  // question suivantes 
   const handleNextQuestion = async () => {
     if (!quizData || !quizData.questions || !quizData.questions[currentQuestionIndex]) {
       console.error('Données du quiz ou question actuelle non définies.');
@@ -95,7 +90,7 @@ const QuizPage = () => {
 
     const isCorrect = selectedAnswer === currentQuestion.correctAnswerId;
 
-    // Enregistrement de la réponse de l'utilisateur
+    // Enregistrez la réponse de l'utilisateur
     try {
       await axios.post("http://localhost:3008/api/saveUserScore", {
         userName: userName,
@@ -114,7 +109,7 @@ const QuizPage = () => {
       }
     }
 
-    // Mis à jour du score et les compteurs de réponses correctes et incorrectes
+    // Mettez à jour le score et les compteurs de réponses correctes et incorrectes
     if (isCorrect) {
       setScore(score + 10);
       setIsAnswerCorrect(true);
@@ -124,7 +119,7 @@ const QuizPage = () => {
       setIncorrectAnswersCount(incorrectAnswersCount + 1);
     }
 
-    // delait avant de passer à la question suivante
+    // Attendez un court délai avant de passer à la question suivante
     setTimeout(() => {
       setIsAnswerCorrect(null);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -138,8 +133,6 @@ const QuizPage = () => {
       setSelectedAnswer(null);
     }, 2000);
   };
-
-  // verification  
 
   if (!quizData || !quizData.questions || !quizData.questions[currentQuestionIndex]) {
     return <div>Loading...</div>;
@@ -175,13 +168,14 @@ const QuizPage = () => {
         </div>
 
         <div className="bg-white shadow-lg p-6 rounded-lg text-center text-gray-800 mt-8 ">
- 
-
-      
- 
-
+  {quizId !== '1' && currentQuestion.image ? (
+     <>
+       {currentQuestion.hint && <h1 className="text-lg text-black-500 mb-5 font-bold">{currentQuestion.hint}</h1>}
+      <img src={currentQuestion.image} alt={`Question ${currentQuestion.image}`}  className="max-w-full mb-4 ml-8" />
+    </>
+  ) : (
     <p className="text-lg font-bold text-black">{currentQuestion.question}</p>
- 
+  )}
 </div>
 
 
@@ -220,14 +214,3 @@ const QuizPage = () => {
 };
 
 export default QuizPage;
-
-
-
-
-
-
-
-
-
-
-

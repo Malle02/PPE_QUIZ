@@ -245,6 +245,7 @@ app.get('/api/Getquiz', async (req, res) => {
 
 
 // page de quiz -------------
+// page de quiz -------------
 
 app.get('/api/quiz/:quizId', async (req, res) => {
   try {
@@ -268,7 +269,7 @@ app.get('/api/quiz/:quizId', async (req, res) => {
     const formattedQuestions = [];
 
     for (const question of questions) {
-    
+      // Ajoutez ce log pour vérifier la valeur de question.Id
       console.log('Question ID:', question.id);
     
       const [correctAnswerIdRow] = await dc.query(
@@ -307,9 +308,10 @@ app.get('/api/quiz/:quizId', async (req, res) => {
   formattedQuestions.push({
     id: question.id,
     question: question.enonce,
+    image: question.image ? `data:image/jpeg;base64,${question.image.toString('base64')}` : null,
+    hint: "À quelle pays appartient ce drapeau ?", 
     answers: formattedAnswers,
     correctAnswerId: correctAnswerId,
-    //  ....
   });
 }
 
@@ -373,13 +375,13 @@ app.post('/api/saveUserScore', async (req, res) => {
 
       
       for (const answer of userAnswers) {
-        // la table resultats
+        // Insérer le score utilisateur dans la table resultats
         const [lastInsertRow] = await dc.query( 'INSERT INTO resultats (id_examen, id_utilisateur, score, reponse, id_question, reponse_attendue) VALUES ((SELECT id FROM examen ORDER BY id DESC LIMIT 1), ?, ?, ?, (SELECT verite.id_question FROM verite INNER JOIN reponse ON reponse.id = ? WHERE verite.id_reponse = ?), (SELECT verite.id_reponse FROM verite WHERE verite.id_question = ( SELECT id_question FROM verite WHERE id_reponse = ?) AND verite.valeur = 1))',
           [userId, score, answer.answerId, answer.answerId, answer.answerId, answer.answerId]
         );
       }
       
-       // Utiliseation d'une table temporaire pour stocker les résultats de la sous-requête
+       // Utiliser une table temporaire pour stocker les résultats de la sous-requête
       const [maxIdRow] = await dc.query('SELECT MAX(id) as maxId FROM examen');
       const maxId = maxIdRow[0].maxId;
   
@@ -412,6 +414,7 @@ app.post('/api/saveUserScore', async (req, res) => {
 
 
 
+// page des score
 // page des score
 app.get("/api/scoreTotal", async (req, res) => {
   
@@ -475,20 +478,25 @@ app.get("/api/scoreTotal", async (req, res) => {
 
 
 
+
 app.get("/api/historiqueDesScores", async (req, res) => {
   try {
     const userName = req.session.user.username;
 
     const historiqueQuery = `
   SELECT 
-  examen.id AS id_examen,
-  quiz.titre AS titre_quiz,
-  DATE_FORMAT(examen.date_debut, '%d/%m/%Y') AS date_debut,
-  DATE_FORMAT(examen.date_fin, '%d/%m/%Y') AS date_fin,
-  SUM(resultats.score) AS score_obtenu,
-  (SELECT SUM(score) FROM resultats WHERE id_examen = examen.id) AS somme_scores_obtenus,
-  (SELECT COUNT(*) FROM association_question_quiz WHERE id_quiz = examen.id_quiz) * 10 AS score_total_attendu
-   
+    examen.id AS id_examen,
+    quiz.titre AS titre_quiz,
+    DATE_FORMAT(examen.date_debut, '%d/%m/%Y') AS date_debut,
+    DATE_FORMAT(examen.date_fin, '%d/%m/%Y') AS date_fin,
+    SUM(resultats.score) AS score_obtenu,
+    (SELECT SUM(score) FROM resultats WHERE id_examen = examen.id) AS somme_scores_obtenus,
+    COUNT(*) * (SELECT COUNT(*) FROM association_question_quiz WHERE id_quiz = examen.id_quiz) * 10 AS score_total_attendu,
+    question.enonce AS question_posee,
+   question.image AS imageQuestion,
+    reponse.libelle AS reponse_utilisateur,
+    CASE WHEN verite.valeur = 1 THEN 'Vrai' ELSE 'Faux' END AS est_correcte,
+    reponse_attendue.libelle AS reponse_attendue  -- Modification ici
   FROM 
     examen
   JOIN 
@@ -501,10 +509,14 @@ app.get("/api/historiqueDesScores", async (req, res) => {
     reponse ON resultats.reponse = reponse.id
   LEFT JOIN 
     verite ON question.id = verite.id_question AND reponse.id = verite.id_reponse
-  WHERE
+  LEFT JOIN 
+    reponse AS reponse_attendue ON resultats.reponse_attendue = reponse_attendue.id  -- Modification ici
+  WHERE 
     resultats.id_utilisateur = (SELECT id FROM utilisateur WHERE username = ?)
   GROUP BY 
-    examen.id, quiz.titre, examen.date_debut, examen.date_fin;
+    examen.id, quiz.titre, examen.date_debut, examen.date_fin, question.enonce, question.image, reponse.libelle, verite.valeur, reponse_attendue.libelle  -- Modification ici
+  ORDER BY 
+    id_examen ASC;
 `;
 
     db.query(historiqueQuery, [userName], (err, historiqueResult) => {
@@ -514,7 +526,7 @@ app.get("/api/historiqueDesScores", async (req, res) => {
       }
 
       if (historiqueResult.length > 0) {
-      
+        // Regrouper les résultats par examen
         const historiqueExamen = historiqueResult.reduce((acc, examen) => {
           const idExamen = examen.id_examen;
           if (!acc[idExamen]) {
@@ -525,8 +537,18 @@ app.get("/api/historiqueDesScores", async (req, res) => {
               date_fin: examen.date_fin,
               score_total_attendu: examen.score_total_attendu,
               somme_scores_obtenus: examen.somme_scores_obtenus,
+              questions: []
             };
           }
+          acc[idExamen].questions.push({
+            enonce: examen.question_posee,
+            image: examen.imageQuestion ? `data:image/jpeg;base64,${examen.imageQuestion.toString('base64')}` : null,
+            hint: "À quelle pays appartient ce drapeau ?",             
+            reponse_utilisateur: examen.reponse_utilisateur,
+            est_correcte: examen.est_correcte,
+            reponse_attendue: examen.reponse_attendue,
+            score_obtenu: examen.score_obtenu
+          });
           return acc;
         }, {});
         // Convertir l'objet regroupé en tableau
@@ -534,6 +556,11 @@ app.get("/api/historiqueDesScores", async (req, res) => {
         res.json(historiqueExamenArray);
       } else {
         res.status(404).send('Aucun historique trouvé');
+      }
+    });
+    req.session.save((err) => {
+      if (err) {
+        console.error('Erreur lors de la sauvegarde de la session :', err);
       }
     });
   } catch (err) {
@@ -577,6 +604,88 @@ app.post('/api/commentaire', (req, res) => {
 
 
 
+
+
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.post(
+  '/api/addquestion',
+  upload.single('pictureCar'),
+  [
+    body('goodResponse').notEmpty().withMessage('Le champ goodResponse est obligatoire'),
+    body('badResponse1').notEmpty().withMessage('Le champ badResponse1 est obligatoire'),
+    body('badResponse2').notEmpty().withMessage('Le champ badResponse2 est obligatoire'),
+    body('badResponse3').notEmpty().withMessage('Le champ badResponse3 est obligatoire'),
+    body('quizType').notEmpty().withMessage('Le champ quizType est obligatoire'),
+    body('quizType').isIn(['1', '2']).withMessage('Le champ quizType doit être 1 ou 2'),
+    body('newQuestion').optional().custom((value, { req }) => {
+      if (req.body.quizType === '1' && !value) {
+        throw new Error('Le champ newQuestion est obligatoire pour le quiz de type 1');
+      }
+      return true;
+    }),
+  ],
+  async (req, res) => {
+    try {
+      console.log('Received Request Body:', req.body);
+      console.log('Received File:', req.file);
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const goodResponse = req.body.goodResponse;
+      const badResponse1 = req.body.badResponse1;
+      const badResponse2 = req.body.badResponse2;
+      const badResponse3 = req.body.badResponse3;
+      const quizType = req.body.quizType;
+
+      const pictureCar = (quizType === '2' && req.file) ? req.file.buffer : null;
+      const newQuestion = (quizType === '1') ? req.body.newQuestion : null;
+
+      const userName = req.session.user.username;
+
+      if (!goodResponse || !badResponse1 || !badResponse2 || !badResponse3) {
+        return res.status(400).json({ error: 'Veuillez fournir toutes les informations nécessaires pour ajouter une question.' });
+      }
+
+      const [existingQuestion] = await dc.query('SELECT id FROM question WHERE enonce = ?', [newQuestion]);
+
+      if (existingQuestion.length > 0) {
+        return res.status(400).send({ error: 'Cette question existe déjà.' });
+      }
+
+      let insertedQuestion;
+      if (quizType === '1') {
+        [insertedQuestion] = await dc.query('INSERT INTO question SET ?', { enonce: newQuestion, question_add_by: userName });
+      } else {
+        [insertedQuestion] = await dc.query('INSERT INTO question SET ?', { question_add_by: userName, image: pictureCar  });
+      }
+
+      const questionId = insertedQuestion.insertId;
+
+      const [insertedGoodResponse] = await dc.query('INSERT INTO reponse (libelle) VALUES (?)', [goodResponse]);
+      const [insertedBadResponse1] = await dc.query('INSERT INTO reponse (libelle) VALUES (?)', [badResponse1]);
+      const [insertedBadResponse2] = await dc.query('INSERT INTO reponse (libelle) VALUES (?)', [badResponse2]);
+      const [insertedBadResponse3] = await dc.query('INSERT INTO reponse (libelle) VALUES (?)', [badResponse3]);
+
+      await dc.query('INSERT INTO verite (id_question, id_reponse, valeur) VALUES (?, ?, ?)', [questionId, insertedGoodResponse.insertId, 1]);
+      await dc.query('INSERT INTO verite (id_question, id_reponse, valeur) VALUES (?, ?, ?)', [questionId, insertedBadResponse1.insertId, 0]);
+      await dc.query('INSERT INTO verite (id_question, id_reponse, valeur) VALUES (?, ?, ?)', [questionId, insertedBadResponse2.insertId, 0]);
+      await dc.query('INSERT INTO verite (id_question, id_reponse, valeur) VALUES (?, ?, ?)', [questionId, insertedBadResponse3.insertId, 0]);
+
+      await dc.query('INSERT INTO association_question_quiz (id_question, id_quiz) VALUES (?, (SELECT id FROM quiz WHERE id = ?))', [questionId, quizType]);
+
+      res.status(200).send({ success: 'Nouvelle question ajoutée avec succès.' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ error: 'Une erreur s\'est produite lors de l\'ajout de la question.' });
+    }
+  }
+);
 
 
 
